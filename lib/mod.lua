@@ -41,36 +41,29 @@ end
 -- wrappers for dynamic monkeying
 
 local note_freq = function(note)
-   --print('note_freq: '..tuning_state.selected_tuning)
+   -- print('note_freq: '..tuning_state.selected_tuning)
    return tunings[tuning_state.selected_tuning].note_freq(note, tuning_state.root_note, tuning_state.root_freq)
 end
 
 local interval_ratio = function(interval)
+   -- print('interval_ratio: '..tuning_state.selected_tuning)
    return tunings[tuning_state.selected_tuning].interval_ratio(interval)
 end
 
 local apply_mod = function()
    print('tuning mod: patching musicutil')
-   
-   if not musicutil then
-      musicutil = require 'lib/musicutil'
-   end
-   
-   musicutil.note_num_to_freq = note_freq
 
-   if MusicUtil then
-      MusicUtil = musicutil
+   if package.loaded['musicutil'] then
+      package.loaded['musicutil'] = nil
    end
-   
-   if Musicutil then
-      Musicutil = musicutil
-   end
+   musicutil = require 'musicutil'  
+   musicutil.note_num_to_freq = note_freq
    
 end
 
 
 ----------------------
---- state persistanc
+--- state persistence
 local state_path = _path.data .. 'tuning_state.lua'
 
 local save_tuning_state = function()
@@ -99,7 +92,7 @@ end
 -----------------------------
 ---- hooks!
 
-mod.hook.register("system_post_startup", "init tuning mod", build_tunings)
+mod.hook.register("system_post_startup", "init tuning mod", function() build_tunings(); apply_mod() end)
 
 -- this kinda does have to happen on each script,
 -- because of the various ways of including MusicUtil
