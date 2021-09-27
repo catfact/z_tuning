@@ -1,11 +1,10 @@
--- helper function for octave ratio tables
+-- helper functions for octave ratio tables
+-- note number is assumed to be an integer!
 local midi_hz_from_table = function(midi, rats, root_note, root_hz, oct)
    oct = oct or 2
    local degree = midi - root_note
    local n = #rats
-   local octave = math.floor(degree / n)
-   local rat = rats[(degree%n)+1]
-   return root_hz * rat * (oct^octave)
+   return root_hz * rats[(degree%n)+1] * (oct^(math.floor(degree/n)))
 end
 
 
@@ -22,26 +21,27 @@ end
 local Tuning = {}
 Tuning.__index = Tuning
 
-Tuning.new = function(...)
-   local x = setmetatable({},Tuning)
+Tuning.new = function(args)
+   local x = setmetatable({}, Tuning)
 
-   x.pseudo_octave = arg.pseudo_octave or 2
+   x.pseudo_octave = args.pseudo_octave or 2
    
-   if arg.midi_hz and arg.interval_ratio then
-      x.midi_hz = midi_hz
-      x.interval_ratio = interval_ratio
-   elseif arg.ratios then
+   if args.midi_hz and args.interval_ratio then
+      x.midi_hz = args.midi_hz
+      x.interval_ratio = args.interval_ratio
+   elseif args.ratios then
       x.midi_hz = function(midi, root_note, root_hz)
-	 return midi_hz_from_table(ratios, x.pseudo_octave, root_note, root_hz)
+	 return midi_hz_from_table(midi, args.ratios, root_note, root_hz, x.pseudo_octave)
       end
-      x.interval_ratio = function(int) return interval_ratio_from_table(ratios, x.pseudo_octave) end
+      x.interval_ratio = function(interval)
+	 return interval_ratio_from_table(interval, args.ratios, x.pseudo_octave)
+      end
    else
       print("error; don't know how to construct tuning with these arguments: ")
-      tab.print(arg)
+      tab.print(args)
       return nil
    end
 
-   
    return x
 end
 
