@@ -9,7 +9,7 @@ init = function()
       --tab.print(v)
       for i=0,11 do
 	 local note = state.root_note + i
-	 local freq = tun.midi_hz(note, state.root_note, state.root_freq)
+	 local freq = tun.note_freq(note, state.root_note, state.root_freq)
 	 print('  n = '..note..'; r = '..freq/state.root_freq)
       end
       print('')

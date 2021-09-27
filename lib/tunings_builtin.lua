@@ -74,7 +74,7 @@ local qmt = function()
    local c = a * b
    return {
       1,           -- unison
-      8 * c / 5,   -- min 2nd
+      8 * c / 25,   -- min 2nd
       a / 2,       -- Maj 2nd
       4 * b / 5,   -- min 3rd
       5 / 4,       -- Maj 3rd
