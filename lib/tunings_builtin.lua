@@ -4,8 +4,8 @@ local JI = require 'lib/intonation'
 local tunings = {}
 
 --- standard 12tet 
-tunings['edo12'] = Tuning.new {
-   midi_hz = function(midi, root_note, root_freq)
+tunings['edo_12'] = Tuning.new {
+   note_freq = function(midi, root_note, root_freq)
       local deg = midi - root_note
       return root_freq * (2 ^ ((midi - root_note)/12))
    end,
@@ -17,7 +17,7 @@ tunings['edo12'] = Tuning.new {
    
 -- "chromaticized" version of ptolemy's intense diatonic
 -- (new intervals constructed from major thirds)
-tunings['ptolemaic'] = Tuning.new {
+tunings['ji_ptolemaic'] = Tuning.new {
    ratios = {	    
       1,            -- C  
       4/3 * 4/5,    -- Db
@@ -34,13 +34,13 @@ tunings['ptolemaic'] = Tuning.new {
    }
 }
 
-tunings['normal'] = Tuning.new { ratios = JI.normal() }
+tunings['ji_normal'] = Tuning.new { ratios = JI.normal() }
 
-tunings['overtone'] = Tuning.new { ratios = JI.overtone() }
+tunings['ji_overtone'] = Tuning.new { ratios = JI.overtone() }
 
-tunings['undertone'] = Tuning.new { ratios = JI.undertone() }
+tunings['ji_undertone'] = Tuning.new { ratios = JI.undertone() }
 
-tunings['lamonte'] = Tuning.new { ratios = JI.lamonte()  }
+tunings['ji_lamonte'] = Tuning.new { ratios = JI.lamonte()  }
 
 local pythag = function()
    local function p5(a, b)
@@ -65,8 +65,9 @@ local pythag = function()
       p5(5, 7),   -- maj 7th
    }
 end
-tunings['pythagorean'] = Tuning.new { ratios = pythag() }
+tunings['ji_pythagoras'] = Tuning.new { ratios = pythag() }
 
+-- quarter-comma meantone
 local qmt = function()
    local a = 5 ^ 0.5
    local b = 5 ^ 0.25
@@ -84,17 +85,16 @@ local qmt = function()
       8 / 5,       -- min 6th
       c / 2,       -- Maj 6th
       4 * a / 5,   -- min 7th
-      5 * a / 4    -- Maj 7th
+      5 * b / 4    -- Maj 7th
    }
 end
 
-tunings['quarter_meantone'] = Tuning.new { ratios = qmt() }
+tunings['meantone'] = Tuning.new { ratios = qmt() }
 
+-- werckmeister III
 local werck3 = function()
    local a = 2 ^ 0.5
-   local a2 = a*a
-   -- quarter-comma
-   local c = 27 / 32 * a2
+   local a2 = 2 ^ 0.25
    return {
       1,
       256 / 243,
@@ -107,9 +107,10 @@ local werck3 = function()
       128 / 81,
       1024 / 729 * a2,
       16 / 9,
-      128 / 81 * a2      
+      128 / 81 * a2
    }
 end
 tunings['werck3'] = Tuning.new { ratios = werck3() }
+
 
 return tunings

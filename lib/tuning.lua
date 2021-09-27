@@ -1,6 +1,6 @@
 -- helper functions for octave ratio tables
 -- note number is assumed to be an integer!
-local midi_hz_from_table = function(midi, rats, root_note, root_hz, oct)
+local note_freq_from_table = function(midi, rats, root_note, root_hz, oct)
    oct = oct or 2
    local degree = midi - root_note
    local n = #rats
@@ -26,12 +26,12 @@ Tuning.new = function(args)
 
    x.pseudo_octave = args.pseudo_octave or 2
    
-   if args.midi_hz and args.interval_ratio then
-      x.midi_hz = args.midi_hz
+   if args.note_freq and args.interval_ratio then
+      x.note_freq = args.note_freq
       x.interval_ratio = args.interval_ratio
    elseif args.ratios then
-      x.midi_hz = function(midi, root_note, root_hz)
-	 return midi_hz_from_table(midi, args.ratios, root_note, root_hz, x.pseudo_octave)
+      x.note_freq = function(midi, root_note, root_hz)
+	 return note_freq_from_table(midi, args.ratios, root_note, root_hz, x.pseudo_octave)
       end
       x.interval_ratio = function(interval)
 	 return interval_ratio_from_table(interval, args.ratios, x.pseudo_octave)
