@@ -37,26 +37,32 @@ local build_tunings = function()
    end
 end
 
+-- set the root note number, without changing the concert pitch (w/r/t a=440) 
+-- in other words, update root frequency such that the new root would yield the same freq for the old root in 12tet
+local set_root_note_preserve_freq = function(num)
+   local interval = num - tuning_state.root_note
+   local ratio =  tunings['edo_12'].interval_ratio(interval)
+   local new_freq = tuning_state.root_freq * ratio
+   tuning_state.root_note = num
+   tuning_state.root_freq = new_freq
+end   
+
 -------------------------------------
 -- wrappers for dynamic monkeying
 
 local note_freq = function(note)
-   -- print('note_freq: '..tuning_state.selected_tuning)
+   --print('note_freq: '..tuning_state.selected_tuning)
    return tunings[tuning_state.selected_tuning].note_freq(note, tuning_state.root_note, tuning_state.root_freq)
 end
 
 local interval_ratio = function(interval)
-   -- print('interval_ratio: '..tuning_state.selected_tuning)
+   --print('interval_ratio: '..tuning_state.selected_tuning)
    return tunings[tuning_state.selected_tuning].interval_ratio(interval)
 end
 
 local apply_mod = function()
    print('tuning mod: patching musicutil')
-
-   if package.loaded['musicutil'] then
-      package.loaded['musicutil'] = nil
-   end
-   musicutil = require 'musicutil'  
+   local musicutil = require 'musicutil'  
    musicutil.note_num_to_freq = note_freq
    
 end
@@ -93,10 +99,6 @@ end
 ---- hooks!
 
 mod.hook.register("system_post_startup", "init tuning mod", function() build_tunings(); apply_mod() end)
-
--- this kinda does have to happen on each script,
--- because of the various ways of including MusicUtil
-mod.hook.register("script_pre_init", "apply tuning mod", apply_mod)
 
 mod.hook.register("system_post_startup", "recall tuning mod settings", recall_tuning_state)
 
@@ -142,8 +144,10 @@ m_incdec = {
    end,
    -- edit root note
    [2] = function(d)   
-      tuning_state.root_note = tuning_state.root_note + d
-      tuning_state.root_note = util.clamp(tuning_state.root_note, 0, 127)
+      --tuning_state.root_note = tuning_state.root_note + d
+      --tuning_state.root_note = util.clamp(tuning_state.root_note, 0, 127)
+      local num = util.clamp(tuning_state.root_note + d, 0, 127)
+      set_root_note_preserve_freq(num)
    end,
    -- edit base frequency
    [3] = function(d)
