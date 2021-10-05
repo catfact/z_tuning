@@ -14,7 +14,7 @@ Scala.parse_ratio = function(str)
    if p ~= nil then
       -- determine if in cents or ratio
       if string.find(p, "[.]") ~= nil then
-	 return 2 ^ (tonumber(p)p/1200)
+	 return 2 ^ (tonumber(p)/1200)
       else
 	 return tonumber(p)
       end
@@ -29,7 +29,7 @@ Scala.is_comment = function(str)
 end
 
 -- parse a .scl file, return ratios
-Scala.parse_file = function(path)
+Scala.load_file = function(path)
    local ratios = {}
    local lines = io.lines(path)
    local l = nil

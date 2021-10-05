@@ -26,8 +26,8 @@ TuningFiles.load_files = function(callback)
 	    tunings[name] = Tuning.new(ratios=r)	 
 	 elseif ext == '.lua' then
 	    local data = dofile(path)
-	    if data.ratios then
-	       tunings[name] = Tuning.new(ratios=data.ratios)
+	    if data then
+	       tunings[name] = Tuning.new(data)
 	    elseif data.cents then
 	       local r = {}
 	       for i,v in ipairs(data.cents)
