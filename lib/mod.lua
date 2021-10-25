@@ -189,8 +189,7 @@ m.redraw = function()
 end
 
 m.init = function()
-   
-   build_tunings()
+   setup_tunings()
 end
 
 m.deinit = function()
