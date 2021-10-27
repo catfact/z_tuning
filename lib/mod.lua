@@ -13,7 +13,7 @@ local tuning_state = {
 }
 
 local tunings = {}
-local tuning_keys= {}
+local tuning_keys = {}
 local tuning_keys_rev = {}
 local num_tunings = 0
 
@@ -28,18 +28,39 @@ local setup_tunings = function()
       table.insert(tuning_keys, k)
       num_tunings = num_tunings + 1
    end
+   
+   local tf =  tuning_files.load_files()
+   for k,v in pairs(tf) do
+      tunings[k] = v
+      table.insert(tuning_keys, k)
+      num_tunings = num_tunings + 1
+   end	 
+   table.sort(tuning_keys)
+   for i,v in ipairs(tuning_keys) do
+      tuning_keys_rev[v] = i
+   end
+
 end
 
 local interval_ratio = function(interval)
-   --print('interval_ratio: '..tuning_state.selected_tuning)
    return tunings[tuning_state.selected_tuning].interval_ratio(interval)
 end
 
 local apply_mod = function()
-   print('tuning mod: patching musicutil')
    local musicutil = require 'musicutil'  
    musicutil.note_num_to_freq = note_freq
-   
+
+   --[[
+   print('tuning_keys:')
+   print(tuning_keys)
+   tab.print(tuning_keys)
+   print(#tuning_keys)
+
+   print('tuning_keys_rev:')
+   print(tuning_keys_rev)
+   tab.print(tuning_keys_rev)
+   print(#tuning_keys_rev)
+   --]]
 end
 
 
@@ -71,27 +92,12 @@ local recall_tuning_state = function()
 end
 
 local mod_init = function()
-   -- build the tunings container and populate it with builtins
-   setup_tunings()
    -- copy factory files, if needed
    tuning_files.bootstrap()
-   -- parse all files from disk
-   ----- fIXME: should use coroutine to remain synchronous?
-   tuning_files.load_files(
-      function(t)
-	 for k,v in pairs(t) do
-	    tunings[k] = v
-	    table.insert(tuning_keys, k)
-	    num_tunings = num_tunings + 1
-	 end	 
-	 table.sort(tuning_keys)
-	 for i,v in ipairs(tuning_keys) do
-	    -- print('tuning key ' .. i .. ' = '..v)
-	    tuning_keys_rev[v] = i
-	 end
-	 apply_mod()
-      end
-   )
+   -- build and populate the tunings container
+   setup_tunings()
+   apply_mod()
+
 end
 
 -----------------------------
@@ -137,7 +143,20 @@ m_enc = {
 m_incdec = {
    -- edit tuning selection
    [1] = function(d)
-      local i = tuning_keys_rev[tuning_state.selected_tuning]
+      --[[
+      print('handling selection incdec...')
+      print('tuning_keys:')
+      print(tuning_keys)
+      tab.print(tuning_keys)
+      print(#tuning_keys)
+
+      print('tuning_keys_rev:')
+      print(tuning_keys_rev)
+      tab.print(tuning_keys_rev)
+      print(#tuning_keys_rev)
+      --]]
+      local sel = tuning_state.selected_tuning
+      local i = tuning_keys_rev[sel]
       i = util.clamp(i + d, 1, num_tunings)
       tuning_state.selected_tuning = tuning_keys[i]
    end,
@@ -167,7 +186,7 @@ m.redraw = function()
    else
       screen.level(4)
    end
-   screen.text(tuning_state.selected_tuning)
+   screen.text("temperament: "..tuning_state.selected_tuning)
    
    screen.move(0, 20)
    if edit_select[m.edit_select] == 'note' then
@@ -175,7 +194,7 @@ m.redraw = function()
    else
       screen.level(4)
    end
-   screen.text(tuning_state.root_note)
+   screen.text("root note: "..tuning_state.root_note)
    
    screen.move(0, 30)
    if edit_select[m.edit_select] == 'freq' then
@@ -183,13 +202,18 @@ m.redraw = function()
    else
       screen.level(4)
    end
-   screen.text(tuning_state.root_freq)
+   screen.text("root freq: "..tuning_state.root_freq)
+
+   --- TODO:
+   -- show some more basic data on selected tuning
    
    screen.update()
 end
 
 m.init = function()
-   setup_tunings()
+   -- FIXME? seems like not a good idea to hit the filesystem here,
+   -- maybe a dedicated "rescan" function would be good
+   -- setup_tunings()
 end
 
 m.deinit = function()

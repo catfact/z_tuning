@@ -1,4 +1,5 @@
 local scala = require 'tuning/lib/tuning_scala'
+local tuning = require 'tuning/lib/tuning'
 
 local TuningFiles = {}
 
@@ -33,8 +34,6 @@ TuningFiles.load_files = function(callback)
       print(list)
       print('----------------------------------')
 
-      --for _,path in pairs(list) do
-      --for path in string.gmatch(list,'[^\r\n]+') do
       for file in splitlines(list) do
 	 print('handling tuning file: '..file)
 	 --local file = string.match(path, ".+/(.*)$")
@@ -45,30 +44,37 @@ TuningFiles.load_files = function(callback)
 	    if ext == 'scl' then
 	       print('loading tuning file (.scl): '..file)
 	       local r = scala.load_file(user_data_path..'/'..file)
-	       tunings[name] = Tuning.new({ratios=r})	 
+	       tunings[name] = tuning.new({ratios=r})	 
 	    elseif ext == 'lua' then
 	       print('loading tuning file (.lua): '..file)
 	       local data = dofile(user_data_path..'/'..file)
 	       if data then
-		  tunings[name] = Tuning.new(data)
+		  tunings[name] = tuning.new(data)
 	       elseif data.cents then
 		  local r = {}
 		  for i,v in ipairs(data.cents) do
 		     table.insert(r, 2 ^ v / 1200)
 		  end
-		  tunings[name] = Tuning.new({ratios=r})
+		  tunings[name] = tuning.new({ratios=r})
 	       end
 	    else
 	       print('WARNING: tuning module encountered unrecognized file: '..file)
 	    end
+	    print('added: '..name)-- : '..tunings[name])
 	 end
       end
-      callback(tunings)
+      tab.print(tunings)
+      return tunings
    end
    local scan_cmd = 'ls '..user_data_path
    print('scanning: ')
    print(scan_cmd)
-   norns.system_cmd(scan_cmd, handle_scanned_files)
+   --norns.system_cmd(scan_cmd, handle_scanned_files)
+   ---- local res = os.execute(scan_cmd)
+   --- UUUUUGH   
+   local stdout = io.popen(scan_cmd, 'r')
+   local res = stdout:read('*a')
+   return handle_scanned_files(res)
 end
 
 return TuningFiles

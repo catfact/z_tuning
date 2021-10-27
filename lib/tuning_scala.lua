@@ -24,14 +24,14 @@ Scala.parse_ratio = function(str)
    return nil
 end
 
-local is_comment = function(str)
+local is_comment = function(line)
    return string.find(line, "^!")
 end
 
 -- parse a .scl file, return ratios
 Scala.load_file = function(path)
    local ratios = {}
---   local file = io.open(path)
+   
    local lines = io.lines(path)
    local l = nil
    
@@ -53,7 +53,6 @@ Scala.load_file = function(path)
       end
       l = lines()
    until l == nil
-   io.close(file)
    return ratios
 end
 
