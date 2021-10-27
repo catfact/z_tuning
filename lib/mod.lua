@@ -66,8 +66,11 @@ end
 
 local apply_mod = function()
    local musicutil = require 'musicutil'  
-   musicutil.note_num_to_freq = note_freq
-
+   musicutil.note_num_to_freq = function(num)
+      return tunings[tuning_state.selected_tuning].note_freq(num,
+							     tuning_state.root_note,
+							     tuning_state.root_freq)
+   end
    --[[
    print('tuning_keys:')
    print(tuning_keys)
