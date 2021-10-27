@@ -8,7 +8,7 @@ local tuning_files = require 'tuning/lib/tuning_files'
 
 local tuning_state = {
    root_note = 69,
-   root_freq = 440,
+   root_freq = 440.0,
    selected_tuning = 'ji_ptolemaic'
 }
 
@@ -22,14 +22,16 @@ local setup_tunings = function()
    tuning_keys = {}
    tuning_keys_rev = {}
    num_tunings = 0
-   
+
+   -- add built-in tunings
    for k,v in pairs(tunings_builtin) do
       tunings[k] = v
       table.insert(tuning_keys, k)
       num_tunings = num_tunings + 1
    end
-   
-   local tf =  tuning_files.load_files()
+
+   -- add tunings from disk
+   local tf = tuning_files.load_files()
    for k,v in pairs(tf) do
       tunings[k] = v
       table.insert(tuning_keys, k)
@@ -39,8 +41,24 @@ local setup_tunings = function()
    for i,v in ipairs(tuning_keys) do
       tuning_keys_rev[v] = i
    end
-
 end
+
+-- set the root note number, without changing the concert pitch (w/r/t a=440) 
+-- in other words, update the root frequency such that the tuning would not change under 12tet
+local set_root_note_move_freq = function(num)
+   local interval = num - tuning_state.root_note
+   local ratio =  tunings['edo_12'].interval_ratio(interval)
+   local new_freq = tuning_state.root_freq * ratio
+   new_freq = math.floor(new_freq*16)*0.0625
+   tuning_state.root_note = num
+   tuning_state.root_freq = new_freq
+end
+
+-- set the root note number, without changing root frequency
+-- this effects a simple transposition unless root frequency is updated separately
+local set_root_note_keep_freq = function(num)
+   tuning_state.root_note = num
+end   
 
 local interval_ratio = function(interval)
    return tunings[tuning_state.selected_tuning].interval_ratio(interval)
@@ -120,14 +138,20 @@ local edit_select = {
 local num_edit_select = 3
 
 local m = {
-   edit_select = 1
+   edit_select = 1,
+   freq_mode_keep = false
 }
 
 m.key = function(n, z)
-  if n == 2 and z == 1 then
+   if n == 3 then
+      m.freq_mode_keep = (z > 0)
+   end
+   
+  if n == 2 and z > 0 then
     -- return to the mod selection menu
-    mod.menu.exit()
+     mod.menu.exit()
   end
+  
 end
 
 m_enc = {
@@ -163,11 +187,15 @@ m_incdec = {
    -- edit root note
    [2] = function(d)   
       local num = util.clamp(tuning_state.root_note + d, 0, 127)
-      set_root_note_preserve_freq(num)
+      if m.freq_mode_keep then
+	 set_root_note_keep_freq(num)
+      else
+	 set_root_note_move_freq(num)
+      end
    end,
    -- edit base frequency
    [3] = function(d)
-      tuning_state.root_freq = tuning_state.root_freq + (d/2)
+      tuning_state.root_freq = math.floor((tuning_state.root_freq + (d*0.0625)) * 16) * 0.0625
       tuning_state.root_freq = util.clamp(tuning_state.root_freq, 1, 10000)
    end,     
 }
@@ -206,12 +234,13 @@ m.redraw = function()
 
    --- TODO:
    -- show some more basic data on selected tuning
+   --- (pseudo-octave, degree count)
    
    screen.update()
 end
 
 m.init = function()
-   -- FIXME? seems like not a good idea to hit the filesystem here,
+   -- FIXME? seems like not a good idea to always hit the filesystem here,
    -- maybe a dedicated "rescan" function would be good
    -- setup_tunings()
 end
