@@ -40,8 +40,6 @@ tunings['ji_overtone'] = Tuning.new { ratios = JI.overtone() }
 
 tunings['ji_undertone'] = Tuning.new { ratios = JI.undertone() }
 
-tunings['ji_lamonte'] = Tuning.new { ratios = JI.lamonte()  }
-
 local pythag = function()
    local function p5(a, b)
       return (3^a) / (2^b)
@@ -65,7 +63,7 @@ local pythag = function()
       p5(5, 7),   -- maj 7th
    }
 end
-tunings['ji_pythagoras'] = Tuning.new { ratios = pythag() }
+tunings['ji_pythagorean'] = Tuning.new { ratios = pythag() }
 
 -- quarter-comma meantone
 local qmt = function()

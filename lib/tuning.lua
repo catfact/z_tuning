@@ -4,7 +4,22 @@ local note_freq_from_table = function(midi, rats, root_note, root_hz, oct)
    oct = oct or 2
    local degree = midi - root_note
    local n = #rats
-   return root_hz * rats[(degree%n)+1] * (oct^(math.floor(degree/n)))
+   local mf = math.floor(midi)
+   if midi == mf then
+      return root_hz * rats[(degree%n)+1] * (oct^(math.floor(degree/n)))
+   else
+      local mf = math.floor(midi)
+      local f = math.abs(midi - mf)
+      local deg1
+      if (degree > 0) then 
+	 deg1 = deg + 1
+      else
+	 deg1 = deg - 1
+      end
+      local a = root_hz * rats[(degree%n)+1] * (oct^(math.floor(degree/n)))
+      local b = root_hz * rats[(deg1%n)+1] * (oct^(math.floor(deg1/n)))      
+      return a * math.pow((b/a), f)
+   end
 end
 
 
