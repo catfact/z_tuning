@@ -2,7 +2,8 @@
 local note_freq_from_table = function(midi, rats, root_note, root_hz, oct)
    -- FIXME [OPTIMIZE]: 
    -- in general, there can be more memoization and explicit use of integer types
-   -- when oct==2^N (as is near-universal), can use some bitwise ops
+   -- when oct==2^N (as is near-universal), can maybe use some bitwise ops
+   -- fractional degrees are quite costly (x2, plus exponential intep)
    oct = oct or 2
    local degree = midi - root_note
    local n = #rats

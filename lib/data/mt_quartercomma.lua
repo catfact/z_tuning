@@ -1,7 +1,7 @@
 local a = 5 ^ 0.5
 local b = 5 ^ 0.25
 local c = a * b
-return { ratios = {
+local r = {
     1,           -- unison
     8 * c / 25,   -- min 2nd
     a / 2,       -- Maj 2nd
@@ -15,4 +15,5 @@ return { ratios = {
     c / 2,       -- Maj 6th
     4 * a / 5,   -- min 7th
     5 * b / 4    -- Maj 7th
-} }
+}
+return { ratios = r }
