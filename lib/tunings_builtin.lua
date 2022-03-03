@@ -7,14 +7,14 @@ local tunings = {}
 tunings['edo12'] = Tuning.new {
    note_freq = function(midi, root_note, root_freq)
       local deg = midi - root_note
-      return root_freq * (2 ^ ((midi - root_note)/12))
+      return root_freq * (2 ^ ((midi - root_note) / 12))
    end,
-   
+
    interval_ratio = function(interval)
-      return math.pow(2, interval/12)
+      return math.pow(2, interval / 12)
    end
 }
-   
+
 -- "chromaticized" version of ptolemy's intense diatonic
 -- (new intervals constructed from major thirds)
 -- tunings['ji_ptolemaic'] = Tuning.new {
@@ -34,11 +34,17 @@ tunings['edo12'] = Tuning.new {
 --    }
 -- }
 
-tunings['ji_normal'] = Tuning.new { ratios = JI.normal() }
+tunings['ji_normal'] = Tuning.new {
+   ratios = JI.normal()
+}
 
-tunings['ji_overtone'] = Tuning.new { ratios = JI.overtone() }
+tunings['ji_overtone'] = Tuning.new {
+   ratios = JI.overtone()
+}
 
-tunings['ji_undertone'] = Tuning.new { ratios = JI.undertone() }
+tunings['ji_undertone'] = Tuning.new {
+   ratios = JI.undertone()
+}
 
 -- local pythag = function()
 --    local function p5(a, b)
@@ -109,6 +115,5 @@ tunings['ji_undertone'] = Tuning.new { ratios = JI.undertone() }
 --    }
 -- end
 -- tunings['werck3'] = Tuning.new { ratios = werck3() }
-
 
 return tunings
