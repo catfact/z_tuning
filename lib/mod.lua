@@ -239,13 +239,11 @@ m.redraw = function()
 end
 
 m.init = function()
-   -- FIXME? seems like not a good idea to always hit the filesystem here,
-   -- maybe a dedicated "rescan" function would be good
-   -- setup_tunings()
+   -- (nothing to do)
 end
 
 m.deinit = function()
-   --- ... ???
+   -- (nothing to do)
 end
 
 mod.menu.register(mod.this_name, m)

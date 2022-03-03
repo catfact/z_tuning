@@ -40,7 +40,6 @@ TuningFiles.load_files = function(callback)
 	 --print(file)
 	 if file then
 	    local name, ext  = string.match(file, "(.*)%.(.*)")
-	    print('name = '..name..'; ext = '..ext)	    
 	    if ext == 'scl' then
 	       print('loading tuning file (.scl): '..file)
 	       local r = scala.load_file(user_data_path..'/'..file)
