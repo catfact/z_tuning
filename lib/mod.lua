@@ -68,17 +68,13 @@ local apply_mod = function()
    musicutil.note_num_to_freq = function(num)
       return tunings[tuning_state.selected_tuning].note_freq(num, tuning_state.root_note, tuning_state.root_freq)
    end
-   --[[
-   print('tuning_keys:')
-   print(tuning_keys)
-   tab.print(tuning_keys)
-   print(#tuning_keys)
-
-   print('tuning_keys_rev:')
-   print(tuning_keys_rev)
-   tab.print(tuning_keys_rev)
-   print(#tuning_keys_rev)
-   --]]
+   musicutil.interval_to_ratio = interval_to_ratio
+   
+   -- FIXME? this is a tricky one...
+   -- (in fact i'm going to say, impossible in general 
+   -- since int->ratio not be invertible/continuous/monotonic
+   -- musicutil.ratio_to_interval = ...
+   
 end
 
 ----------------------
@@ -243,13 +239,11 @@ m.redraw = function()
 end
 
 m.init = function()
-   -- FIXME? seems like not a good idea to always hit the filesystem here,
-   -- maybe a dedicated "rescan" function would be good
-   -- setup_tunings()
+   -- (nothing to do)
 end
 
 m.deinit = function()
-   --- ... ???
+   -- (nothing to do)
 end
 
 mod.menu.register(mod.this_name, m)
