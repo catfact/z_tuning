@@ -5,7 +5,6 @@ local tuning = require 'tuning/lib/tuning'
 local tunings_builtin = require 'tuning/lib/tunings_builtin'
 local tuning_files = require 'tuning/lib/tuning_files'
 
-
 local tuning_state = {
    root_note = 69,
    root_freq = 440.0,
@@ -24,7 +23,7 @@ local setup_tunings = function()
    num_tunings = 0
 
    -- add built-in tunings
-   for k,v in pairs(tunings_builtin) do
+   for k, v in pairs(tunings_builtin) do
       tunings[k] = v
       table.insert(tuning_keys, k)
       num_tunings = num_tunings + 1
@@ -32,13 +31,13 @@ local setup_tunings = function()
 
    -- add tunings from disk
    local tf = tuning_files.load_files()
-   for k,v in pairs(tf) do
+   for k, v in pairs(tf) do
       tunings[k] = v
       table.insert(tuning_keys, k)
       num_tunings = num_tunings + 1
-   end	 
+   end
    table.sort(tuning_keys)
-   for i,v in ipairs(tuning_keys) do
+   for i, v in ipairs(tuning_keys) do
       tuning_keys_rev[v] = i
    end
 end
@@ -47,9 +46,9 @@ end
 -- in other words, update the root frequency such that the tuning would not change under 12tet
 local set_root_note_move_freq = function(num)
    local interval = num - tuning_state.root_note
-   local ratio =  tunings['edo_12'].interval_ratio(interval)
+   local ratio = tunings['edo_12'].interval_ratio(interval)
    local new_freq = tuning_state.root_freq * ratio
-   new_freq = math.floor(new_freq*16)*0.0625
+   new_freq = math.floor(new_freq * 16) * 0.0625
    tuning_state.root_note = num
    tuning_state.root_freq = new_freq
 end
@@ -58,18 +57,16 @@ end
 -- this effects a simple transposition unless root frequency is updated separately
 local set_root_note_keep_freq = function(num)
    tuning_state.root_note = num
-end   
+end
 
 local interval_ratio = function(interval)
    return tunings[tuning_state.selected_tuning].interval_ratio(interval)
 end
 
 local apply_mod = function()
-   local musicutil = require 'musicutil'  
+   local musicutil = require 'musicutil'
    musicutil.note_num_to_freq = function(num)
-      return tunings[tuning_state.selected_tuning].note_freq(num,
-							     tuning_state.root_note,
-							     tuning_state.root_freq)
+      return tunings[tuning_state.selected_tuning].note_freq(num, tuning_state.root_note, tuning_state.root_freq)
    end
    --[[
    print('tuning_keys:')
@@ -84,7 +81,6 @@ local apply_mod = function()
    --]]
 end
 
-
 ----------------------
 --- state persistence
 local state_path = _path.data .. 'tuning_state.lua'
@@ -94,11 +90,13 @@ local save_tuning_state = function()
    io.output(f)
    io.write('return { \n')
    local keys = {'selected_tuning', 'root_note', 'root_freq'}
-   for _,k in pairs(keys) do
+   for _, k in pairs(keys) do
       local v = tuning_state[k]
       local vstr = v
-      if type(v) == 'string' then vstr = "'"..v.."'" end
-      io.write('  '..k..' = '..vstr..',\n')
+      if type(v) == 'string' then
+         vstr = "'" .. v .. "'"
+      end
+      io.write('  ' .. k .. ' = ' .. vstr .. ',\n')
    end
    io.write('}\n')
    io.close(f)
@@ -149,19 +147,19 @@ m.key = function(n, z)
    if n == 3 then
       m.freq_mode_keep = (z > 0)
    end
-   
-  if n == 2 and z > 0 then
-    -- return to the mod selection menu
-     mod.menu.exit()
-  end
-  
+
+   if n == 2 and z > 0 then
+      -- return to the mod selection menu
+      mod.menu.exit()
+   end
+
 end
 
 m_enc = {
    [2] = function(d)
       m.edit_select = util.clamp(m.edit_select + d, 1, num_edit_select)
    end,
-   
+
    [3] = function(d)
       (m_incdec[m.edit_select])(d)
    end
@@ -188,57 +186,59 @@ m_incdec = {
       tuning_state.selected_tuning = tuning_keys[i]
    end,
    -- edit root note
-   [2] = function(d)   
+   [2] = function(d)
       local num = util.clamp(tuning_state.root_note + d, 0, 127)
       if m.freq_mode_keep then
-	 set_root_note_keep_freq(num)
+         set_root_note_keep_freq(num)
       else
-	 set_root_note_move_freq(num)
+         set_root_note_move_freq(num)
       end
    end,
    -- edit base frequency
    [3] = function(d)
-      tuning_state.root_freq = math.floor((tuning_state.root_freq + (d*0.0625)) * 16) * 0.0625
+      tuning_state.root_freq = math.floor((tuning_state.root_freq + (d * 0.0625)) * 16) * 0.0625
       tuning_state.root_freq = util.clamp(tuning_state.root_freq, 1, 10000)
-   end,     
+   end
 }
 
 m.enc = function(n, d)
-   if m_enc[n] then (m_enc[n])(d) end
+   if m_enc[n] then
+      (m_enc[n])(d)
+   end
    mod.menu.redraw()
 end
 
 m.redraw = function()
    screen.clear()
-   
+
    screen.move(0, 10)
    if edit_select[m.edit_select] == 'tuning' then
       screen.level(15)
    else
       screen.level(4)
    end
-   screen.text("temperament: "..tuning_state.selected_tuning)
-   
+   screen.text("temperament: " .. tuning_state.selected_tuning)
+
    screen.move(0, 20)
    if edit_select[m.edit_select] == 'note' then
       screen.level(15)
    else
       screen.level(4)
    end
-   screen.text("root note: "..tuning_state.root_note)
-   
+   screen.text("root note: " .. tuning_state.root_note)
+
    screen.move(0, 30)
    if edit_select[m.edit_select] == 'freq' then
       screen.level(15)
    else
       screen.level(4)
    end
-   screen.text("root freq: "..tuning_state.root_freq)
+   screen.text("root freq: " .. tuning_state.root_freq)
 
    --- TODO:
    -- show some more basic data on selected tuning
    --- (pseudo-octave, degree count)
-   
+
    screen.update()
 end
 
@@ -254,18 +254,17 @@ end
 
 mod.menu.register(mod.this_name, m)
 
-
 ----------------------
 --- API
 
 local api = {}
 
 api.get_tuning_state = function()
-  return tuning_state
+   return tuning_state
 end
 
 api.get_tuning_data = function()
-  return tunings
+   return tunings
 end
 
 api.save_state = save_tuning_state
