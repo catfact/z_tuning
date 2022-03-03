@@ -1,4 +1,4 @@
-{
+return {
     ratios = {	    
        1,            -- C  
        4/3 * 4/5,    -- Db
