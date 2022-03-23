@@ -2,7 +2,7 @@
 
 tuning mod for monome norns
 
-- use the normal install process for norns scripts: `;install https://github.com/catfact/z.tuning`
+- use the normal install process for norns scripts: `;install https://github.com/catfact/z_tuning`
 
 - with the mod enabled, tuning is applied globally, to all scripts which use the `musicutil.note_num_to_freq` library function and its variants. 
   - **caveat**: unfortunately, not all scripts use this library; many hardcode their own MIDI->hz conversions and are not open to tuning adjustments.
