@@ -1,4 +1,4 @@
-# z.tuning
+# z_tuning
 
 tuning mod for monome norns
 
