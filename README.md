@@ -14,7 +14,7 @@ tuning mod for monome norns
 
 - `.lua` files defining scales can contain any lua code, but should return a table containing a field called `ratios` or a field called `cents`, either of which should be another table.
 
-- tuning data files should be placed in `~/dust/data/z_tuning/lib/data`. this location will be populated with some "factory" files when the mod is first run.
+- tuning data files should be placed in `~/dust/data/z_tuning/tunings/`. this location will be populated with some "factory" files when the mod is first run.
 
 ## mod menu usage
 
