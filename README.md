@@ -64,4 +64,4 @@ set the current tuning, given ID string
 
 all original work is copyright ©ezra buchla and released into the public domain.
 
-(note that this repo contains some `.scl` files downloaded from [huygens-fokker.org](https://www.huygens-fokker.org/docs/scalesdir.txt). the licensing terms for this material are unclearm to me, but it is freely available and builds on the work of others (e.g. composers), and i hope that sharing it here is in keeping with the spirit of the author's intentions.)
+(note that this repo contains some `.scl` files downloaded from [huygens-fokker.org](https://www.huygens-fokker.org/docs/scalesdir.txt). the licensing terms for this material are unclear to me, but it is freely available and builds on the work of others (e.g. composers), and i hope that sharing it here is in keeping with the spirit of the author's intentions.)
