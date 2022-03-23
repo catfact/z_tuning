@@ -54,9 +54,9 @@ set the current tuning, given ID string
 
 ----
 
-- see [CHANGELIST.md] for version information
+- see [CHANGELIST.md](CHANGELIST.md) for version information
 
-- see [TODO.md] for a list of known issues / development roadmap.
+- see [TODO.md](TODO.md) for a list of known issues / development roadmap.
 
 - you may encounter bugs! please report them by visiting the [github issue list](https://github.com/catfact/z.tuning/issues). (feature requests are not needed.)
 
