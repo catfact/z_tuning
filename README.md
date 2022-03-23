@@ -6,7 +6,7 @@ tuning mod for monome norns
 
 - with the mod enabled, tuning is applied globally, to all scripts which use the `musicutil.note_num_to_freq` library function and its variants. 
   - **caveat**: unfortunately, not all scripts use this library; many hardcode their own MIDI->hz conversions and are not open to tuning adjustments.
-  - **caveat**: `ratio_to_note_num` remains unchanged because it is mathematically unfeasible in the general case.)
+  - **caveat**: `ratio_to_note_num` remains unchanged because it is mathematically unfeasible in the general case.
 
 - new tunings can be specified either:
   - using the [Scala format](https://www.huygens-fokker.org/scala/scl_format.html) (extension `.scl`),
@@ -14,7 +14,7 @@ tuning mod for monome norns
 
 - `.lua` files defining scales can contain any lua code, but should return a table containing a field called `ratios` or a field called `cents`, either of which should be another table.
 
-- tuning data files should be placed in `~/dust/data/z.tuning/lib/data`. this location will be populated with some "factory" files when the mod is first run.
+- tuning data files should be placed in `~/dust/data/z_tuning/lib/data`. this location will be populated with some "factory" files when the mod is first run.
 
 ## mod menu usage
 
@@ -23,7 +23,7 @@ tuning mod for monome norns
   - specification of root note as MIDI number,
   - independent specification of base frequency
   - hold down K3 to couple base freq to root note; that is:
-    - whenever the root note changes, update the base frequency such that the tuning would not change under 12tet
+    _whenever the root note changes, update the base frequency such that the tuning would not change under 12tet_
 
 ## API usage
 
