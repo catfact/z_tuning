@@ -22,8 +22,8 @@ tuning mod for monome norns
   - tuning selection,
   - specification of root note as MIDI number,
   - independent specification of base frequency
-  - hold down K3 to couple base freq to root note; that is:
-    _whenever the root note changes, update the base frequency such that the tuning would not change under 12tet_
+
+by default, base freq is coupled to root note; that is:  whenever the root note changes, update the base frequency such that the tuning would not change under 12tet. hold down K3 to decouple them.
 
 ## API usage
 
