@@ -1,10 +1,10 @@
-local scala = require 'tuning/lib/tuning_scala'
-local tuning = require 'tuning/lib/tuning'
+local scala = require 'z_tuning/lib/tuning_scala'
+local tuning = require 'z_tuning/lib/tuning'
 
 local TuningFiles = {}
 
-local user_data_path = _path.data .. 'tuning/tunings'
-local factory_data_path = _path.code .. 'tuning/lib/data'
+local user_data_path = _path.data .. 'z_tuning/tunings'
+local factory_data_path = _path.code .. 'z_tuning/lib/data'
 
 TuningFiles.bootstrap = function()
    print('bootstrapping tunings...')

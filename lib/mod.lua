@@ -1,9 +1,9 @@
 local mod = require 'core/mods'
 local util = require 'lib/util'
 
-local tuning = require 'tuning/lib/tuning'
-local tunings_builtin = require 'tuning/lib/tunings_builtin'
-local tuning_files = require 'tuning/lib/tuning_files'
+local tuning = require 'z_tuning/lib/tuning'
+local tunings_builtin = require 'z_tuning/lib/tunings_builtin'
+local tuning_files = require 'z_tuning/lib/tuning_files'
 
 local tuning_state = {
    root_note = 69,
@@ -46,7 +46,7 @@ end
 -- in other words, update the root frequency such that the tuning would not change under 12tet
 local set_root_note_move_freq = function(num)
    local interval = num - tuning_state.root_note
-   local ratio = tunings['edo_12'].interval_ratio(interval)
+   local ratio = tunings['edo12'].interval_ratio(interval)
    local new_freq = tuning_state.root_freq * ratio
    new_freq = math.floor(new_freq * 16) * 0.0625
    tuning_state.root_note = num
@@ -164,18 +164,6 @@ m_enc = {
 m_incdec = {
    -- edit tuning selection
    [1] = function(d)
-      --[[
-      print('handling selection incdec...')
-      print('tuning_keys:')
-      print(tuning_keys)
-      tab.print(tuning_keys)
-      print(#tuning_keys)
-
-      print('tuning_keys_rev:')
-      print(tuning_keys_rev)
-      tab.print(tuning_keys_rev)
-      print(#tuning_keys_rev)
-      --]]
       local sel = tuning_state.selected_tuning
       local i = tuning_keys_rev[sel]
       i = util.clamp(i + d, 1, num_tunings)
@@ -239,10 +227,12 @@ m.redraw = function()
 end
 
 m.init = function()
+  print ('z_tuning: init menu?')
    -- (nothing to do)
 end
 
 m.deinit = function()
+  print ('z_tuning: deinit menu?')
    -- (nothing to do)
 end
 
@@ -253,15 +243,39 @@ mod.menu.register(mod.this_name, m)
 
 local api = {}
 
+-- return the current state of the mod, a table containing:
+-- - tuning selection (ID string)
+-- - root note number
+-- - base frequency
 api.get_tuning_state = function()
    return tuning_state
 end
 
+-- get the entire collection of tuning data
 api.get_tuning_data = function()
    return tunings
 end
 
+-- save the current tuning state
 api.save_state = save_tuning_state
+-- recall the saved tuning state
 api.recall_state = recall_tuning_state
+
+-- set the root note,  independent odf base frequency
+api.set_root_note_keep_freq = set_root_note_keep_freq
+
+-- change the root note, moving the base frequency
+api.set_root_note_move_freq = set_root_note_move_freq
+
+-- set the current tuning, given numerical index
+api.select_tuning_by_index = function(idx)
+   tuning_state.selected_tuning = tuning_keys[idx]
+end
+
+-- set the current tuning, given ID string
+api.select_tuning_by_id = function(id)
+   local idx = tuning_keys_rev[id]
+   tuning_state.selected_tuning = tuning_keys[idx]
+end
 
 return api
