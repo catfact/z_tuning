@@ -16,6 +16,8 @@ tuning mod for monome norns
 
 - tuning data files should be placed in `~/dust/data/z_tuning/tunings/`. this location will be populated with some "factory" files when the mod is first run.
 
+- tuning state (selection, root note, and base frequency) is saved on a clean shutdown with SLEEP, and restored on boot. this state is global for all scripts (for now.)
+
 ## mod menu usage
 
 - the mod menu exposes:
