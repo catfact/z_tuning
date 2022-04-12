@@ -1,9 +1,6 @@
--- helper functions for octave ratio tables
+local tu = require 'z_tuning/lib/tuning_util'
+
 local note_freq_from_table = function(midi, rats, root_note, root_hz, oct)
-   -- FIXME [OPTIMIZE]: 
-   -- in general, there can be more memoization and explicit use of integer types
-   -- when oct==2^N (as is near-universal), can maybe use some bitwise ops
-   -- fractional degrees are quite costly (x2, plus exponential intep)
    oct = oct or 2
    local degree = midi - root_note
    local n = #rats
@@ -28,8 +25,24 @@ end
 local interval_ratio_from_table = function(interval, rats, oct)
    oct = oct or 2
    local n = #rats
-   local rat = rats[(int % n) + 1]
+   local rat = rats[(math.floor(interval) % n) + 1]
    return rat * (oct ^ (math.floor(interval / n)))
+end
+
+local bend_table_rats = function(rats)
+   local t = {}
+   for i,r in ipairs(rats) do
+      table.insert(t, (tu.log2(r)*12) - (i-1))
+   end
+   return t
+end
+
+local bend_table_func = function(func)
+   local t = {}
+   for i=1,12 do
+      table.insert(t, func(i) - (i-1))
+   end
+   return t
 end
 
 ----------------------------------------------------
@@ -46,6 +59,7 @@ Tuning.new = function(args)
    if args.note_freq and args.interval_ratio then
       x.note_freq = args.note_freq
       x.interval_ratio = args.interval_ratio
+      x.bend_table = bend_table_func(args.interval_ratio)
    elseif args.ratios then
       x.note_freq = function(midi, root_note, root_hz)
          return note_freq_from_table(midi, args.ratios, root_note, root_hz, x.pseudo_octave)
@@ -53,12 +67,13 @@ Tuning.new = function(args)
       x.interval_ratio = function(interval)
          return interval_ratio_from_table(interval, args.ratios, x.pseudo_octave)
       end
+      x.bend_table = bend_table_rats(args.ratios)
    else
       print("error; don't know how to construct tuning with these arguments: ")
       tab.print(args)
       return nil
    end
-
+   --tab.print(x.bend_table)
    return x
 end
 

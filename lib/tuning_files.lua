@@ -57,9 +57,7 @@ TuningFiles.load_files = function(callback)
                   for i, v in ipairs(data.cents) do
                      table.insert(r, 2 ^ v / 1200)
                   end
-                  tunings[name] = tuning.new({
-                     ratios = r
-                  })
+                  tunings[name] = tuning.new({ratios = r})
                end
             else
                print('WARNING: tuning module encountered unrecognized file: ' .. file)
