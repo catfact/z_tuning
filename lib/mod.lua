@@ -49,7 +49,6 @@ local setup_tunings = function()
    
 end
 
-
 local calc_bend_root = function()
    local st = tu.ratio_st(tuning_state.root_freq / tu.midi_hz(tuning_state.root_note))
    tuning_state.bend_root = st
@@ -60,6 +59,8 @@ end
 local set_root_note = function(num)
    tuning_state.root_note = num
    calc_bend_root()
+   params:set('zt_root_note_adj', num, true)
+   params:set('zt_root_note_piv', num, true)
 end
 
 -- set the root frequency, without changing root note
@@ -67,6 +68,7 @@ end
 local set_root_frequency = function(freq)
    tuning_state.root_freq = freq
    calc_bend_root()
+   params:set('zt_root_freq', freq, true)
 end
 
 -- set the root note, updating the root frequency,
@@ -79,6 +81,9 @@ local set_root_note_adjusting = function(num)
    tuning_state.root_note = num
    tuning_state.root_freq = new_freq
    calc_bend_root()
+   params:set('zt_root_note', num, true)
+   params:set('zt_root_note_piv', num, true)
+   params:set('zt_root_freq', new_freq, true)
 end
 
 -- set the root note, updating the root frequency,
@@ -87,6 +92,9 @@ local set_root_note_pivoting = function(num)
    local freq = tunings[tuning_state.selected_tuning].note_freq(num, tuning_state.root_note, tuning_state.root_freq)
    tuning_state.root_note = num
    tuning_state.root_freq = freq
+   params:set('zt_root_note', num, true)
+   params:set('zt_root_note_adj', num, true)
+   params:set('zt_root_freq', freq, true)
    calc_bend_root()
 end
 
@@ -127,7 +135,7 @@ local add_tuning = function(k, t)
    num_tunings = #tuning_keys
    build_tuning_keys_reversed()
    -- hack: change the options list for the corresponding param
-   local p = params.data[params.lookup('zt_tuning')]
+   local p = params.params[params.lookup('zt_tuning')]
    p.options = tuning_keys
    p.count = num_tunings
 end
@@ -217,22 +225,21 @@ local add_mod_params = function()
    controlspec = ControlSpec.FREQ, action = set_root_frequency})
 end
 
------------------------------
----- hooks!
-
-mod.hook.register("system_post_startup", "init tuning mod", mod_init)
-
-mod.hook.register("system_post_startup", "recall tuning mod settings", recall_tuning_state)
-
-mod.hook.register("system_pre_shutdown", "save tuning mod settings", save_tuning_state)
-
-mod.hook.register("script_pre_init", "add tuning mod parameters", function()
+local pre_init = function()
    local init1 = init
    init = function()
       init1()
       add_mod_params()
+      -- after adding our params, we want to re-load default/existing values
+      -- but, we don't want to re-bang script params, 
+      -- or bang our params which have conflicting side-effects
+      params:read(nil, true)
+      local bangers = { 'zt_tuning', 'zt_root_note', 'zt_root_freq'}
+      for _,id in ipairs(bangers) do 
+         params.params[params.lookup[id]]:bang()
+      end
    end
-end)
+end
 
 -----------------------------
 ---- menu UI
@@ -362,6 +369,17 @@ end
 
 mod.menu.register(mod.this_name, m)
 
+
+-----------------------------
+---- hooks!
+
+mod.hook.register("system_post_startup", "init tuning mod", mod_init)
+
+mod.hook.register("system_post_startup", "recall tuning mod settings", recall_tuning_state)
+
+mod.hook.register("system_pre_shutdown", "save tuning mod settings", save_tuning_state)
+
+mod.hook.register("script_pre_init", "add tuning mod parameters", pre_init)
 
 ----------------------
 --- API
