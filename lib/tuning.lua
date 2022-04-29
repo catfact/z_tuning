@@ -6,8 +6,13 @@ local note_freq_from_table = function(midi, rats, root_note, root_hz, oct)
    local n = #rats
    local mf = math.floor(midi)
    if midi == mf then
-      return root_hz * rats[(degree % n) + 1] * (oct ^ (math.floor(degree / n)))
+      local octpow = math.floor(degree / n)
+      oct = oct ^ octpow
+      local idx = (degree % n) + 1
+      local rat = rats[idx]
+      return root_hz * rat * oct
    else
+      -- interpolate non-integer argument
       local mf = math.floor(midi)
       local f = math.abs(midi - mf)
       local deg1
@@ -54,6 +59,7 @@ Tuning.__index = Tuning
 Tuning.new = function(args)
    local x = setmetatable({}, Tuning)
 
+   -- TODO: fallback value for pseudo-octave should always exceed highest ratio, if ratios are specified
    x.pseudo_octave = args.pseudo_octave or 2
 
    if args.note_freq and args.interval_ratio then

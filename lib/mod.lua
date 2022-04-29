@@ -1,8 +1,8 @@
 local mod = require 'core/mods'
 local util = require 'lib/util'
+local ControlSpec = require 'controlspec'
 
 local tu = require 'z_tuning/lib/tuning_util'
-
 local tuning = require 'z_tuning/lib/tuning'
 local tunings_builtin = require 'z_tuning/lib/tunings_builtin'
 local tuning_files = require 'z_tuning/lib/tuning_files'
@@ -15,20 +15,24 @@ local tuning_state = {
 
 local tunings = {}
 local tuning_keys = {}
-local tuning_keys_rev = {}
-local num_tunings = 0
+
+local build_tuning_keys_reversed = function()
+   table.sort(tuning_keys)
+   tuning_keys_rev = {}
+   for i, v in ipairs(tuning_keys) do
+      tuning_keys_rev[v] = i
+   end
+end
 
 local setup_tunings = function()
    tunings = {}
    tuning_keys = {}
    tuning_keys_rev = {}
-   num_tunings = 0
 
    -- add built-in tunings
    for k, v in pairs(tunings_builtin) do
       tunings[k] = v
       table.insert(tuning_keys, k)
-      num_tunings = num_tunings + 1
    end
 
    -- add tunings from disk
@@ -36,13 +40,15 @@ local setup_tunings = function()
    for k, v in pairs(tf) do
       tunings[k] = v
       table.insert(tuning_keys, k)
-      num_tunings = num_tunings + 1
    end
-   table.sort(tuning_keys)
-   for i, v in ipairs(tuning_keys) do
-      tuning_keys_rev[v] = i
-   end
+   num_tunings = #tuning_keys
+   build_tuning_keys_reversed()
+   
+   print("tuning_keys_rev:")
+   tab.print(tuning_keys_rev)
+   
 end
+
 
 local calc_bend_root = function()
    local st = tu.ratio_st(tuning_state.root_freq / tu.midi_hz(tuning_state.root_note))
@@ -58,7 +64,7 @@ end
 
 -- set the root frequency, without changing root note
 -- this effects a transposition
-local set_root_freq = function(freq)
+local set_root_frequency = function(freq)
    tuning_state.root_freq = freq
    calc_bend_root()
 end
@@ -101,25 +107,41 @@ local get_bend_semitones = function(num)
 end
 
 -- set the current tuning, by ID string
-local set_tuning_id = function(id)
-   local idx = tuning_keys_rev[id]
-   tuning_state.selected_tuning = tuning_keys[idx]
+local set_tuning_id = function(key)
+   tuning_state.selected_tuning = key
    calc_bend_root()
 end
 
 -- set the current tuning, by numerical index
-local select_tuning_index = function(idx)
+local set_tuning_index = function(idx)
    tuning_state.selected_tuning = tuning_keys[idx]
    calc_bend_root()
 end
 
+-- add a new tuning object to the list
+-- @param k: the key to use
+-- @param t: a Tuning table (e.g. constructed with Tuning.new)
+local add_tuning = function(k, t)
+   tunings[k] = t
+   table.insert(tuning_keys, k)
+   num_tunings = #tuning_keys
+   build_tuning_keys_reversed()
+   -- hack: change the options list for the corresponding param
+   local p = params.data[params.lookup('zt_tuning')]
+   p.options = tuning_keys
+   p.count = num_tunings
+end
 
+-----------------------------------------------------
+-- MONKEY TIME
 -- patch the `musicutil` library functions
 local apply_mod = function()
    print('applying tuning mod')
    local musicutil = require 'musicutil'
    musicutil.note_num_to_freq = function(num)
-      return tunings[tuning_state.selected_tuning].note_freq(num, tuning_state.root_note, tuning_state.root_freq)
+      local freq = tunings[tuning_state.selected_tuning].note_freq(num, tuning_state.root_note, tuning_state.root_freq)
+      --print(''..num..' -> '..freq)
+      return freq
    end
    musicutil.interval_to_ratio = interval_to_ratio
 
@@ -170,7 +192,29 @@ end
 
 local add_mod_params = function()
    print('add tuning mod params')
-   --- TODO!!!
+   
+   -- a pretty nasty issue with option params:
+   -- in pset, option param stores index as a number.
+   -- this makes it useless if the option list is dynamically built
+   -- only workaround i can think is to *also* store the ID string as a separate param
+   -- this gets very ugly! so for now i'm not gonna worry about it...
+   
+   params:add_group("Z_TUNING", 5)
+
+   params:add({type='option', name='tuning', id='zt_tuning', 
+      options=tuning_keys, action=set_tuning_index})
+
+   params:add({type='number', name='root note (transposing)', id='zt_root_note', 
+   min=0, max=127, default=69, action=set_root_note})
+
+   params:add({type='number', name='root note (adjusting)', id='zt_root_note_adj', 
+   min=0, max=127, default=69, action=set_root_note_adjusting})
+
+   params:add({type='number', name='root note (pivoting)', id='zt_root_note_piv', 
+   min=0, max=127, default=69, action=set_root_note_pivoting})
+
+   params:add({type='control',name='root frequency', id='zt_root_freq', 
+   controlspec = ControlSpec.FREQ, action = set_root_frequency})
 end
 
 -----------------------------
@@ -182,7 +226,13 @@ mod.hook.register("system_post_startup", "recall tuning mod settings", recall_tu
 
 mod.hook.register("system_pre_shutdown", "save tuning mod settings", save_tuning_state)
 
-mod.hook.register("script_pre_init", "add tuning mod parameters", add_mod_params)
+mod.hook.register("script_pre_init", "add tuning mod parameters", function()
+   local init1 = init
+   init = function()
+      init1()
+      add_mod_params()
+   end
+end)
 
 -----------------------------
 ---- menu UI
@@ -227,7 +277,7 @@ m_incdec = {
       local sel = tuning_state.selected_tuning
       local i = tuning_keys_rev[sel]
       i = util.clamp(i + d, 1, num_tunings)
-      tuning_state.selected_tuning = tuning_keys[i]
+      set_tuning_index(i)
    end,
    -- edit root note
    [2] = function(d)
@@ -240,8 +290,9 @@ m_incdec = {
    end,
    -- edit base frequency
    [3] = function(d)
-      tuning_state.root_freq = math.floor((tuning_state.root_freq + (d * 0.0625)) * 16) * 0.0625
-      tuning_state.root_freq = util.clamp(tuning_state.root_freq, 1, 10000)
+      local freq = math.floor((tuning_state.root_freq + (d * 0.0625)) * 16) * 0.0625
+      tuning_state.root_freq = util.clamp(freq, 1, 10000)
+      set_root_frequency(freq)
    end
 }
 
@@ -261,7 +312,7 @@ m.redraw = function()
    else
       screen.level(4)
    end
-   screen.text("temperament: " .. tuning_state.selected_tuning)
+   screen.text("tuning: " .. tuning_state.selected_tuning)
 
    screen.move(0, 20)
    if edit_select[m.edit_select] == 'note' then
@@ -279,35 +330,38 @@ m.redraw = function()
    end
    screen.text("root freq: " .. tuning_state.root_freq)
 
-   --- TODO:
-   -- show some more basic data on selected tuning
-   --- (pseudo-octave, degree count)
+   --- draw bend table:
+   -- TODO
+   --[[
+   local bt = tunings[tuning_state.selected_tuning].bend_table
+   local n = #bt
+   local w = math.floor(128 / n)
+   local h = 0
+   local y = 50
+   local x = 0
+   screen.level(12)
+   for i=1,n do
+      x = (i-1)*w
+      h = bt[i].linlin(0, 100, -10, 10)
+      screen.rect(x, y, x+w, y+h); screen.fill()
+   end
+   --]]
 
    screen.update()
 end
 
 m.init = function()
-  print ('z_tuning: init menu?')
+  -- print ('z_tuning: init menu?')
    -- (nothing to do)
 end
 
 m.deinit = function()
-   print ('z_tuning: deinit menu?')
+   -- print ('z_tuning: deinit menu?')
    -- (nothing to do)
 end
 
 mod.menu.register(mod.this_name, m)
 
------------------------------
----- hooks!
-
-mod.hook.register("system_post_startup", "init tuning mod", mod_init)
-
-mod.hook.register("system_post_startup", "recall tuning mod settings", recall_tuning_state)
-
-mod.hook.register("system_pre_shutdown", "save tuning mod settings", save_tuning_state)
-
-mod.hook.register("script_pre_init", "add tuning mod parameters", add_mod_params)
 
 ----------------------
 --- API
@@ -330,8 +384,8 @@ api.set_root_note = set_root_note
 api.set_root_frequency = set_root_frequency
 api.set_root_note_adjusting = set_root_note_adjusting
 api.set_root_note_pivoting = set_root_note_pivoting
-api.select_tuning_index = select_tuning_index
-api.select_tuning_id = set_tuning_id 
+api.set_tuning_index = set_tuning_index
+api.set_tuning_id = set_tuning_id 
 api.get_bend_semitones = get_bend_semitones
 
 return api

@@ -15,7 +15,7 @@ function tu.hz_midi(hz)
 end
 
 function tu.midi_hz(midi)
-    return 440 * math.pow(2, (midi-69)/12)
+    return 440 * (2.0^((midi-69)/12.0))
 end
 
 return tu
