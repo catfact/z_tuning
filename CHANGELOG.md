@@ -1,6 +1,6 @@
 ## v0.1.0
 
-beta release
+2nd alpha release
 
 - **breaking**: add / change API functions
 - add mod parameters
