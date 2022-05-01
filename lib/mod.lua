@@ -3,7 +3,6 @@ local util = require 'lib/util'
 local ControlSpec = require 'controlspec'
 
 local tu = require 'z_tuning/lib/tuning_util'
-local tuning = require 'z_tuning/lib/tuning'
 local tunings_builtin = require 'z_tuning/lib/tunings_builtin'
 local tuning_files = require 'z_tuning/lib/tuning_files'
 
@@ -386,7 +385,7 @@ mod.hook.register("script_pre_init", "add tuning mod parameters", pre_init)
 
 local api = {}
 
--- return the current state of the mod, a table containing:
+-- return the current state of the mod
 api.get_tuning_state = function()
    return tuning_state
 end

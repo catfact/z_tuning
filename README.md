@@ -17,6 +17,7 @@ tuning mod for monome norns
 - tuning data files should be placed in `~/dust/data/z_tuning/tunings/`. this location will be populated with some "factory" files when the mod is first run.
 
 - tuning state (selection, root note, and base frequency) is saved on a clean shutdown with SLEEP, and restored on boot. this state is global for all scripts (for now.)
+  additionally, tuning parameters may be saved as part of parameter sets for specific scripts. 
 
 ## parameters
 
@@ -47,43 +48,33 @@ the parameters are:
 
 by default, base freq is coupled to root note; that is:  whenever the root note changes, update the base frequency such that the tuning would not change under 12tet. hold down K3 to decouple them.
 
-## API usage
+## API
 
-return the current state of the mod, a table containing:
+`api.get_tuning_state()`: return the current state of the mod, a table containing:
 - tuning selection (ID string)
 - root note number
 - base frequency
-`api.get_tuning_state()`
 
-return the entire collection of tuning data
-`api.get_tuning_data()`
+**`api.get_tuning_data()`**: return the entire collection of tuning data
 
-save/recall the current tuning state
-`api.save_state()`
-`api.recall_state()`
+**`api.save_state()`**, **`api.recall_state()`**: save / recall the current tuning state
 
-set the root note, as the `root note` parameter above
-`api.set_root_note(note)`
+**`api.set_root_note(note)`**: set the root note, as the `root note` parameter above
 
+**`api.set_root_note_adjusting(note)`**: 
 set the root note, as with the `root note (adjusting)` parameter above
-`api.set_root_note_adjusting(note)`
 
-set the root note, as with the `root note (pivoting)` parameter above
-`api.set_root_note_pivoting(note)`
+**`api.set_root_note_pivoting(note)`**: set the root note, as with the `root note (pivoting)` parameter above
 
-set the current tuning, given numerical index
-`api.select_tuning_by_index(idx)`
+**`api.select_tuning_by_index(idx)`**: set the current tuning, given numerical index
 
-set the current tuning, given ID string
-`api.select_tuning_by_id(id)`
+**`api.select_tuning_by_id(id)`**: set the current tuning, given ID string
 
-add a new tuning table (e.g. constructed with `Tuning.new`)
+**`api.add_tuning(id, t)`**: add a new tuning table (e.g. constructed with `Tuning.new`)
 (note that this will mess up existing tuning selection parameter values! this feature may be reconsidered.)
-`api.add_tuning(id, t)`
 
-get the deviation in semitones from 12EDO/A440, for a given note. 
+**`api.get_bend_semitones(num)`**: get the deviation in semitones from 12EDO/A440, for a given note. 
 (could be useful for implementing tuning by MIDI pitch bend.)
-`api.get_bend_semitones(num)`
 
 ------
 
