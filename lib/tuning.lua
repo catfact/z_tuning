@@ -1,14 +1,17 @@
 local tu = require 'z_tuning/lib/tuning_util'
 
 local note_freq_from_table = function(midi, rats, root_note, root_hz, oct)
+   -- print('note_freq_from_table:')
    oct = oct or 2
    local degree = midi - root_note
    local n = #rats
+   -- print(string.format('midi = %d, root = %d, n = %d, deg = ', midi, root_note, n, degree))
    local mf = math.floor(midi)
    if midi == mf then
       local octpow = math.floor(degree / n)
       oct = oct ^ octpow
       local idx = (degree % n) + 1
+      -- print ('idx = '..idx)
       local rat = rats[idx]
       return root_hz * rat * oct
    else
@@ -56,15 +59,24 @@ end
 local Tuning = {}
 Tuning.__index = Tuning
 
+
 Tuning.new = function(args)
    local x = setmetatable({}, Tuning)
 
-   -- TODO: fallback value for pseudo-octave should always exceed highest ratio, if ratios are specified
+   -- TODO: fallback value for pseudo-octave should always exceed highest ratio?
    x.pseudo_octave = args.pseudo_octave or 2
 
-   if args.note_freq and args.interval_ratio then
-      x.note_freq = args.note_freq
+   if args.interval_ratio then
       x.interval_ratio = args.interval_ratio
+      if args.note_freq then
+         x.note_freq = args.note_freq
+      else
+         local rats = {}
+         for i=0,11 do rats[i] = args.interval_ratio(i) end
+         x.note_freq = function(midi, root_note, root_hz)
+            return note_freq_from_table(midi, rats, root_note, root_hz, x.pseudo_octave)
+         end
+      end
       x.bend_table = bend_table_func(args.interval_ratio)
    elseif args.ratios then
       x.note_freq = function(midi, root_note, root_hz)
@@ -74,6 +86,13 @@ Tuning.new = function(args)
          return interval_ratio_from_table(interval, args.ratios, x.pseudo_octave)
       end
       x.bend_table = bend_table_rats(args.ratios)
+   elseif args.cents then
+      local r = {}
+      for i, v in ipairs(data.cents) do
+         table.insert(r, 2 ^ v / 1200)
+      end
+      x.ratios = r
+      return Tuning.new(x)
    else
       print("error; don't know how to construct tuning with these arguments: ")
       tab.print(args)

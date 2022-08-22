@@ -49,6 +49,9 @@ local setup_tunings = function()
    
 end
 
+
+local tuning_change_callback = function() end
+
 local calc_bend_root = function()
    local st = tu.ratio_st(tuning_state.root_freq / tu.midi_hz(tuning_state.root_note))
    tuning_state.bend_root = st
@@ -61,6 +64,7 @@ local set_root_note = function(num)
    calc_bend_root()
    params:set('zt_root_note_adj', num, true)
    params:set('zt_root_note_piv', num, true)
+   tuning_change_callback()
 end
 
 -- set the root frequency, without changing root note
@@ -69,6 +73,7 @@ local set_root_frequency = function(freq)
    tuning_state.root_freq = freq
    calc_bend_root()
    params:set('zt_root_freq', freq, true)
+   tuning_change_callback()
 end
 
 -- set the root note, updating the root frequency,
@@ -77,13 +82,16 @@ local set_root_note_adjusting = function(num)
    local interval = num - tuning_state.root_note
    local ratio = tunings['edo12'].interval_ratio(interval)
    local new_freq = tuning_state.root_freq * ratio
-   new_freq = math.floor(new_freq * 16) * 0.0625 -- ???
+   -- FIXME, why are we rounding here? (only to 1/16hz but still)
+   -- if its just for display purposes that seems silly
+   new_freq = math.floor(new_freq * 16) * 0.0625 
    tuning_state.root_note = num
    tuning_state.root_freq = new_freq
    calc_bend_root()
    params:set('zt_root_note', num, true)
    params:set('zt_root_note_piv', num, true)
    params:set('zt_root_freq', new_freq, true)
+   tuning_change_callback()
 end
 
 -- set the root note, updating the root frequency,
@@ -96,6 +104,7 @@ local set_root_note_pivoting = function(num)
    params:set('zt_root_note_adj', num, true)
    params:set('zt_root_freq', freq, true)
    calc_bend_root()
+   tuning_change_callback()
 end
 
 -- return the frequency ratio for a given number of scale degrees from the root.
@@ -118,12 +127,14 @@ end
 local set_tuning_id = function(key)
    tuning_state.selected_tuning = key
    calc_bend_root()
+   tuning_change_callback()
 end
 
 -- set the current tuning, by numerical index
 local set_tuning_index = function(idx)
    tuning_state.selected_tuning = tuning_keys[idx]
    calc_bend_root()
+   tuning_change_callback()
 end
 
 -- add a new tuning object to the list
@@ -155,7 +166,7 @@ local apply_mod = function()
 
    -- FIXME? this is a tricky one...
    -- (in fact i'm going to say, impossible in general 
-   -- since int->ratio not be invertible/continuous/monotonic
+   -- since int->ratio need not be invertible/continuous/monotonic
    -- musicutil.ratio_to_interval = ...
 end
 
@@ -240,6 +251,10 @@ local pre_init = function()
       end
    end
 end
+
+local set_tuning_change_callback = function(f) tuning_change_callback = f end
+
+local clear_tuning_change_callback = function() tuning_change_callback = function() end end
 
 -----------------------------
 ---- menu UI
@@ -338,7 +353,7 @@ m.redraw = function()
    screen.text("root freq: " .. tuning_state.root_freq)
 
    --- draw bend table:
-   -- TODO
+   -- TODO?
    --[[
    local bt = tunings[tuning_state.selected_tuning].bend_table
    local n = #bt
@@ -381,6 +396,8 @@ mod.hook.register("system_pre_shutdown", "save tuning mod settings", save_tuning
 
 mod.hook.register("script_pre_init", "add tuning mod parameters", pre_init)
 
+mod.hook.register("script_post_cleanup", "clean up tuning mod callbacks", clear_tuning_change_callback)
+
 ----------------------
 --- API
 
@@ -405,5 +422,8 @@ api.set_root_note_pivoting = set_root_note_pivoting
 api.set_tuning_index = set_tuning_index
 api.set_tuning_id = set_tuning_id 
 api.get_bend_semitones = get_bend_semitones
+api.set_tuning_change_callback = set_tuning_change_callback
+api.clear_tuning_change_callback = clear_tuning_change_callback
+api.add_tuning = add_tuning
 
 return api

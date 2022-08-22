@@ -85,6 +85,19 @@ get the deviation in semitones from 12EDO/A440, for a given note.
 (could be useful for implementing tuning by MIDI pitch bend.)
 `api.get_bend_semitones(num)`
 
+set an arbitrary global callback to execute whenever tuning functions are recalculated
+`api.set_tuning_change_callback(function())`
+
+
+clear the global callback (also happens automatically in post-cleanup hook)
+`api.clear_tuning_change_callback()`
+
+
+add a new tuning spec to the in-memory list
+table should be e.g. constructed by `tuning.new({ratios={...}})` 
+`api.add_tuning(name, table)`
+
+
 ------
 
 - see [CHANGELIST.md](CHANGELIST.md) for version information

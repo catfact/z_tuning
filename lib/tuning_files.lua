@@ -49,15 +49,12 @@ TuningFiles.load_files = function(callback)
                })
             elseif ext == 'lua' then
                print('loading tuning file (.lua): ' .. file)
-               local data = dofile(user_data_path .. '/' .. file)
+               local path = user_data_path .. '/' .. file
+               local data = dofile(path)
                if data then
                   tunings[name] = tuning.new(data)
-               elseif data.cents then
-                  local r = {}
-                  for i, v in ipairs(data.cents) do
-                     table.insert(r, 2 ^ v / 1200)
-                  end
-                  tunings[name] = tuning.new({ratios = r})
+               else
+                  print("tuning_files: couldn't load file at path: "..path )
                end
             else
                print('WARNING: tuning module encountered unrecognized file: ' .. file)
