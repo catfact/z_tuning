@@ -20,9 +20,9 @@ local note_freq_from_table = function(midi, rats, root_note, root_hz, oct)
       local f = math.abs(midi - mf)
       local deg1
       if (degree > 0) then
-         deg1 = deg + 1
+         deg1 = degree + 1
       else
-         deg1 = deg - 1
+         deg1 = degree - 1
       end
       local a = root_hz * rats[(degree % n) + 1] * (oct ^ (math.floor(degree / n)))
       local b = root_hz * rats[(deg1 % n) + 1] * (oct ^ (math.floor(deg1 / n)))
