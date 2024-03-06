@@ -5,13 +5,13 @@ local note_freq_from_table = function(midi, rats, root_note, root_hz, oct)
    oct = oct or 2
    local degree = midi - root_note
    local n = #rats
-   -- print(string.format('midi = %d, root = %d, n = %d, deg = ', midi, root_note, n, degree))
+   -- print(string.format('midi = %f, root = %f, n = %f, degree = %f', midi, root_note, n, degree))
+   -- tab.print(rats)
    local mf = math.floor(midi)
    if midi == mf then
       local octpow = math.floor(degree / n)
       oct = oct ^ octpow
       local idx = (degree % n) + 1
-      -- print ('idx = '..idx)
       local rat = rats[idx]
       return root_hz * rat * oct
    else
@@ -24,8 +24,14 @@ local note_freq_from_table = function(midi, rats, root_note, root_hz, oct)
       else
          deg1 = degree - 1
       end
-      local a = root_hz * rats[(degree % n) + 1] * (oct ^ (math.floor(degree / n)))
-      local b = root_hz * rats[(deg1 % n) + 1] * (oct ^ (math.floor(deg1 / n)))
+      local idxa = (degree % n) + 1
+      local idxb = (deg1 % n) + 1
+      -- print(string.format('idxa = %f, idxb = %f', idxa, idxb))
+      local octa = (oct ^ (math.floor(degree / n)))
+      local octb = (oct ^ (math.floor(deg1 / n)))
+      -- print(string.format('octa = %f, octb = %f', octa, octb))
+      local a = root_hz * rats[math.floor(idxa)] * octa
+      local b = root_hz * rats[math.floor(idxb)] * octb
       return a * math.pow((b / a), f)
    end
 end
