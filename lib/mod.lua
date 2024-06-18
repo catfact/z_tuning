@@ -108,9 +108,15 @@ local set_root_note_pivoting = function(num)
 end
 
 -- return the frequency ratio for a given number of scale degrees from the root.
--- (argument is `floor`d to an integer)
 local interval_ratio = function(interval)
-   return tunings[tuning_state.selected_tuning].interval_ratio(interval)
+   local floor = math.floor(interval)
+   if interval == floor then
+      return tunings[tuning_state.selected_tuning].interval_ratio(interval)
+   else
+      local r1 = tunings[tuning_state.selected_tuning].interval_ratio(floor)
+      local r2 = tunings[tuning_state.selected_tuning].interval_ratio(floor + 1)
+      return r1 * math.pow(r2 / r1, interval - floor)
+   end
 end
 
 -- return the amount of deviation from 12tet in semitones, for a given note
@@ -164,10 +170,16 @@ local apply_mod = function()
    end
    musicutil.interval_to_ratio = interval_ratio
 
-   -- FIXME? this is a tricky one...
-   -- (in fact i'm going to say, impossible in general 
-   -- since int->ratio need not be invertible/continuous/monotonic
+   -- FIXME:
+   -- the inverse conversion isn't guaranteed possible,
+   -- because int->ratio need not be invertible/continuous/monotonic
+   -- however, we could construct inverse logarithmic LUT for table-based tunings
+   -- and allow function-based tunings to provide their own inverse function
+   -- for now, note that these conversions aren't symmetric!
+   ---------------------------------
+   -- not patched
    -- musicutil.ratio_to_interval = ...
+   ----------------------------------
 end
 
 ----------------------
