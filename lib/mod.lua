@@ -162,7 +162,7 @@ local apply_mod = function()
       --print(''..num..' -> '..freq)
       return freq
    end
-   musicutil.interval_to_ratio = interval_to_ratio
+   musicutil.interval_to_ratio = interval_ratio
 
    -- FIXME? this is a tricky one...
    -- (in fact i'm going to say, impossible in general 
