@@ -123,9 +123,9 @@ end
 local get_bend_semitones = function(num)
    local bt = tunings[tuning_state.selected_tuning].bend_table
    local n = #bt
-   print("bend n = "..n)
+   -- print("bend n = "..n)
    local idx = ((num - tuning_state.root_note) % n) + 1
-   print("bend idx = "..idx)
+   -- print("bend idx = "..idx)
    return bt[idx] + tuning_state.bend_root
 end
 
